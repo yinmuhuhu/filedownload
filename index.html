@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Download</title>
+  <style>
+    .container {
+      width: 500px;
+      height: 100px;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      margin: auto;
+    }
+    .container button {
+      position: absolute;
+      right: 0;
+      border-radius: 2px;
+    }
+    .progress {
+      width: 100%;
+      height: 10px;
+      margin-top: 10px;
+      background: #eee;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: #f4e;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <span id="filename"></span>
+    <button type="button" onclick="download()">点击下载</button>
+    <div class="progress">
+      <div id="progress-bar" class="progress-bar"></div>
+    </div>
+  </div>
+  <script>
+    const filename = 'test.zip'
+    let oProgressBar = document.getElementById('progress-bar')
+    let oFilename = document.getElementById('filename')
+    oFilename.innerHTML = 'filename: ' + filename
+
+    function download() {
+      let xhr = createXHR()
+      // xhr.responseType = "blob"
+      xhr.onload = function () {
+        if ((xhr.status > 200 && xhr.status < 300) || xhr.status == 304) {
+          console.log(xhr.responseText)
+        } else if (xhr.status === 200) {
+          // 这块如果用的是后端给你返回的url，将这个url作为隐藏的a标签的href然后自动点击就好啦～
+          // let blob = xhr.response
+          // let reader = new FileReader()
+          // reader.readAsDataURL(blob)
+          // reader.onload = function (e) {
+          //   let a = document.createElement('a')
+          //   a.download = filename
+          //   a.href = e.target.result
+          //   a.click()
+          // }
+          console.log("Request was successful: " + xhr.status)
+        }
+      }
+      xhr.onprogress = function (event) {
+        if (event.lengthComputable) {
+          oProgressBar.style.width = 500 * (event.loaded / event.total) + 'px'
+          oFilename.innerHTML = 'filename: ' + filename + ' | timeStamp: ' + event.timeStamp
+        }
+        else console.log('server not response Content-Length')
+      }
+      xhr.open("post", "http://127.0.0.1:9999/" + filename, true)
+      xhr.send(null)
+    }
+
+    function createXHR() {
+      if (typeof XMLHttpRequest != "undefined") {
+        return new XMLHttpRequest();
+      } else if (typeof ActiveXObject != "undefined") {
+        if (typeof arguments.callee.activeXString != "string") {
+          const versions = ["MSXML2.XMLHttp.6.0", "MSXML2.XMLHttp.3.0", "MSXML2.XMLHttp"];
+          for (let i = 0, len = versions.length; i < len; i++) {
+            try {
+              let xhr = new ActiveXObject(versions[i]);
+              arguments.callee.activeXString = versions[i];
+              return xhr;
+            } catch (ex) {
+              console.log(ex)
+            }
+          }
+        }
+        return new ActiveXObject(arguments.callee.activeXString);
+      } else {
+        throw new Error("NO XHR object...")
+      }
+    }
+  </script>
+</body>
+
+</html>
